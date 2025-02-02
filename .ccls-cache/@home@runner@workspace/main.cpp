@@ -1,12 +1,3 @@
-#include <algorithm>
-#include <chrono>
-#include <cmath>
-#include <iostream>
-#include <limits>
-#include <memory.h>
-#include <time.h>
-#include <vector>
-
 #include "hubsolver.h"
 
 using namespace std;
@@ -18,14 +9,16 @@ int main() {
 
   calc_custo_dist();
   ordenar_nos();
+  
   declara_hubs(s);
-
   melhor_hub(s);
 
   heu_cons_gul(s);
+  
   calc_fo(s);
 
   imprimir_sol(s);
+  arqv_sol(s);
 
   return 0;
 }
@@ -43,20 +36,21 @@ void ler_dados(const char *arq) {
 void arqv_sol(Sol &s) {
   FILE *arq;
   arq = fopen("solucaoOtima.txt", "w");
+
   fprintf(arq, "n: %d      p: %d\n", num_nos, num_hubs);
-  fprintf(arq, "FO:      %f\n", s.fo);
+  fprintf(arq, "FO:      %.2f\n", s.fo);
   fprintf(arq, "HUBS [%d", s.vet_hubs[0]);
   for (int i = 1; i < num_hubs; i++) {
     fprintf(arq, ",%d", s.vet_hubs[i]);
   }
   fprintf(arq, "]\n");
-  printf("OR    H1    H2    DS    CUSTO\n");
-  for (int i = 0; i < num_hubs; i++) {
-    for (int j = 0; j < num_hubs; j++) {
-      printf("%d      %d    %d      %d    %.2f\n", o, s.vet_hubs[i],
-             s.vet_hubs[j], ds, mat_custo[i][j]);
-    }
+  fprintf(arq, "OR  H1  H2  DS  CUSTO\n");
+  for (int i = 0; i < num_nos * num_nos; i++) {
+    fprintf(arq, "%d   %d   %d   %d   %.2f\n", s.cam[i].o, s.cam[i].h1,
+            s.cam[i].h2, s.cam[i].ds, s.cam[i].custo);
   }
+
+  fclose(arq);
 }
 
 void imprimir_sol(Sol &s) {
@@ -68,13 +62,9 @@ void imprimir_sol(Sol &s) {
   }
   printf("]\n");
   printf("OR  H1  H2  DS  CUSTO\n");
-  for (int i = 0; i < num_nos; i++) {
-    for (int j = 0; j < num_nos; j++) {
-      int h1 = no_hub[i];
-      int h2 = no_hub[j];
-      printf("\n%d   %d   %d   %d   %.2f\n", i, h1, h2, j,
-             mat_custo_total[i][j]);
-    }
+  for (int i = 0; i < num_nos * num_nos; i++) {
+    printf("%d   %d   %d   %d   %.2f\n", s.cam[i].o, s.cam[i].h1, s.cam[i].h2,
+           s.cam[i].ds, s.cam[i].custo);
   }
 }
 
@@ -126,18 +116,6 @@ void declara_hubs(Sol &s) {
 }
 
 void melhor_hub(Sol &s) {
-  for (int i = 1; i < num_hubs; i++) {
-    for (int j = 0; j < num_nos; j++) {
-      if (DISTANCIA(vet_nos[j], vet_nos[s.vet_hubs[i]]) <
-          DISTANCIA(vet_nos[j], vet_nos[s.vet_hubs[i - 1]]))
-        no_hub[j] = s.vet_hubs[i];
-      else
-        no_hub[j] = s.vet_hubs[i - 1];
-    }
-  }
-}
-
-void heu_cons_gul(Sol &s) {
   for (int i = 0; i < num_nos; i++) {
     double dist_min = numeric_limits<double>::max();
     int melhor_h = -1;
@@ -153,22 +131,33 @@ void heu_cons_gul(Sol &s) {
   }
 }
 
+void heu_cons_gul(Sol &s) {
+  for (int i = 0; i < num_nos; i++) {
+    for (int k = 0; k < num_nos; k++) {
+      int h1 = no_hub[i];
+      int h2 = no_hub[k];
+      int o_h1 = mat_custo[i][h1];
+      int h1_h2 = ALPHA * mat_custo[h1][h2];
+      int h2_ds = mat_custo[h2][k];
+
+      double custo = o_h1 + h1_h2 + h2_ds;
+
+      int cam = i * num_nos + k;
+      s.cam[cam].custo = custo;
+      s.cam[cam].o = i;
+      s.cam[cam].h1 = h1;
+      s.cam[cam].h2 = h2;
+      s.cam[cam].ds = k;
+    }
+  }
+}
+
 void calc_fo(Sol &s) {
   double custo_max = 0;
 
-  for (int i = 0; i < num_nos; i++) {
-    for (int j = 0; j < num_nos; j++) {
-      int h1 = no_hub[i];
-      int h2 = no_hub[j];
-      int o_h1 = mat_custo[i][h1];
-      int h1_h2 = ALPHA * mat_custo[h1][h2];
-      int h2_ds = mat_custo[h2][j];
-
-      double custo = o_h1 + h1_h2 + h2_ds;
-      mat_custo_total[i][j] = custo;
-      custo_max = max(custo_max, custo);
-    }
+  for (int i = 0; i < num_nos * num_nos; i++) {
+    double custo = s.cam[i].custo;
+    custo_max = max(custo_max, custo);
   }
   s.fo = custo_max;
 }
-

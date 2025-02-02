@@ -1,6 +1,17 @@
 #ifndef HUBSOLVER_H_INCLUDED
 #define HUBSOLVER_H_INCLUDED
 
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <limits>
+#include <memory.h>
+#include <sstream>
+#include <time.h>
+#include <vector>
+
 #define MAX_NOS 200
 #define MAX_HUBS 50
 #define ALPHA 0.75
@@ -14,15 +25,22 @@ typedef struct No {
   double y;
 } No;
 
+typedef struct Caminho {
+  int o, h1, h2, ds;
+  double custo;
+} caminhos;
+
 typedef struct tSolucao {
   double fo;
   int vet_hubs[MAX_HUBS];
+  caminhos cam[MAX_NOS * MAX_NOS];
 } Sol;
 
 // dados de entrada
 int num_nos;
 // transformar em parametro
 int num_hubs;
+int num_caminhos = num_nos * num_nos;
 int o, ds;
 int vet_ind_no[MAX_NOS];
 int no_hub[MAX_NOS];
@@ -44,5 +62,6 @@ void heu_cons_gul(Sol &s);
 void calc_fo(Sol &s);
 
 void imprimir_sol(Sol &s);
+void arqv_sol(Sol &s);
 
 #endif // HUBSOLVER_H_INCLUDED
