@@ -65,5 +65,6 @@ void calc_fo(Sol &s);
 void imprimir_sol(Sol &s);
 void arqv_sol(Sol &s);
 void ler_sol(const char *nome_arquivo, Sol &s);
+void clonar_sol(const Sol &s1, Sol &s2);
 
 #endif // HUBSOLVER_H_INCLUDED

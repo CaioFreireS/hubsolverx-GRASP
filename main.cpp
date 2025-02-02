@@ -5,7 +5,7 @@ int main() {
   num_hubs = 2;
   ler_dados("instancias/inst5.txt");
 
-  Sol s;
+  Sol s,s2;
 
   ler_sol("solucaoOtima.txt", s);
 
@@ -22,6 +22,9 @@ int main() {
   imprimir_sol(s);
   arqv_sol(s);
 
+  clonar_sol(s,s2);
+  imprimir_sol(s2);
+  
   return 0;
 }
 
@@ -115,6 +118,20 @@ void ler_sol(const char *nome_arquivo, Sol &s) {
   }
 
   fclose(arq);
+}
+
+void clonar_sol(const Sol &s1, Sol &s2) {
+    s2.fo = s1.fo;
+
+    // Copiar os hubs
+    for (int i = 0; i < num_hubs; i++) {
+        s2.vet_hubs[i] = s1.vet_hubs[i];
+    }
+
+    // Copiar os caminhos
+    for (int i = 0; i < num_nos * num_nos; i++) {
+        s2.cam[i] = s1.cam[i];
+    }
 }
 
 void imprimir_sol(Sol &s) {
