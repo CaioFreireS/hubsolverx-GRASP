@@ -7,14 +7,16 @@ int main() {
 
   Sol s;
 
+  ler_sol("solucaoOtima.txt", s);
+
   calc_custo_dist();
   ordenar_nos();
-  
+
   declara_hubs(s);
   melhor_hub(s);
 
   heu_cons_gul(s);
-  
+
   calc_fo(s);
 
   imprimir_sol(s);
@@ -48,6 +50,68 @@ void arqv_sol(Sol &s) {
   for (int i = 0; i < num_nos * num_nos; i++) {
     fprintf(arq, "%d   %d   %d   %d   %.2f\n", s.cam[i].o, s.cam[i].h1,
             s.cam[i].h2, s.cam[i].ds, s.cam[i].custo);
+  }
+
+  fclose(arq);
+}
+
+void ler_sol(const char *nome_arquivo, Sol &s) {
+  FILE *arq = fopen(nome_arquivo, "r");
+  if (arq == NULL) {
+    printf("o arquivo solucaoOtima.txt não existe.\n");
+    return;
+  }
+
+  char buffer[100];
+
+  if (fscanf(arq, "n: %d p: %d", &num_nos, &num_hubs) != 2) {
+    printf("Erro ao ler n e p.\n");
+    fclose(arq);
+    return;
+  }
+
+  if (fscanf(arq, " FO: %lf", &s.fo) != 1) {
+    printf("Erro ao ler a função objetivo (FO).\n");
+    fclose(arq);
+    return;
+  }
+
+  if (fscanf(arq, " HUBS [%d", &s.vet_hubs[0]) != 1) {
+    printf("Erro ao ler hubs.\n");
+    fclose(arq);
+    return;
+  }
+  for (int i = 1; i < num_hubs; i++) {
+    if (fscanf(arq, ",%d", &s.vet_hubs[i]) != 1) {
+      printf("Erro ao ler hubs.\n");
+      fclose(arq);
+      return;
+    }
+  }
+
+  if (fgets(buffer, sizeof(buffer), arq) == NULL) {
+    printf("Erro ao ler fechamento dos hubs.\n");
+    fclose(arq);
+    return;
+  }
+
+  if (fgets(buffer, sizeof(buffer), arq) == NULL) {
+    printf("Erro ao ler o cabeçalho dos caminhos.\n");
+    fclose(arq);
+    return;
+  }
+
+  int i = 0;
+  while (i < num_nos * num_nos &&
+         fscanf(arq, "%d %d %d %d %lf", &s.cam[i].o, &s.cam[i].h1, &s.cam[i].h2,
+                &s.cam[i].ds, &s.cam[i].custo) == 5) {
+    i++;
+  }
+
+  if (i == 0) {
+    printf("Erro ao ler os caminhos. Nenhum caminho lido.\n");
+  } else {
+    printf("Leitura bem-sucedida! %d caminhos lidos.\n", i);
   }
 
   fclose(arq);

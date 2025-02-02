@@ -54,14 +54,16 @@ void ler_dados(const char *arq);
 
 void calc_custo_dist();
 void ordenar_nos();
-void declara_hubs(Sol &s);
 
+void declara_hubs(Sol &s);
 void melhor_hub(Sol &s);
 
 void heu_cons_gul(Sol &s);
+
 void calc_fo(Sol &s);
 
 void imprimir_sol(Sol &s);
 void arqv_sol(Sol &s);
+void ler_sol(const char *nome_arquivo, Sol &s);
 
 #endif // HUBSOLVER_H_INCLUDED
