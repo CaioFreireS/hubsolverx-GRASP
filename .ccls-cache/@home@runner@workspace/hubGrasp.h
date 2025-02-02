@@ -2,6 +2,7 @@
 #define HUBGRASP_H_INCLUDED
 
 #define MAX_NOS 200
+#define MAX_HUBS 50
 
 //deve ser transformado em parametro dps
 #define num_hubs 2
@@ -13,9 +14,9 @@ typedef struct No{
 }No;
 
 typedef struct tSolucao{
-  int fo;
+  double fo;
   int vet_sol[MAX_NOS];
-  int vet_hubs[MAX_NOS];
+  int vet_hubs[MAX_HUBS];
 }Sol;
 
 
