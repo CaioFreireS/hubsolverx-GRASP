@@ -2,39 +2,70 @@
 
 using namespace std;
 int main() {
-  num_hubs = 2;
-  ler_dados("instancias/inst5.txt");
+  num_hubs = 50;
+  const char *instancia = "instancias/inst200.txt";
+  // const char* sol_oti="solucaoOtima.txt";
 
-  Sol s,s2;
+  ler_dados(instancia);
 
-  ler_sol("solucaoOtima.txt", s);
+  // ler_sol(sol_oti, s);
 
-  calc_custo_dist();
-  ordenar_nos();
+  //Sol s;
 
-  declara_hubs(s);
-  melhor_hub(s);
+  //calc_custo_dist();
+  //ordenar_nos();
 
-  heu_cons_gul(s);
+  //declara_hubs(s);
+  //melhor_hub(s);
 
-  calc_fo(s);
+  //heu_cons_gul(s);
 
-  imprimir_sol(s);
-  arqv_sol(s);
+  //calc_fo(s);
 
-  clonar_sol(s,s2);
-  imprimir_sol(s2);
+  //imprimir_sol(s);
+  //arqv_sol(s);
+
+  // Sol s2;
+
+  // clonar_sol(s,s2);
+  // imprimir_sol(s2);
   
+  teste_sol_i(instancia);
+  //teste_sol_1000(instancia);
+
   return 0;
 }
 
 void ler_dados(const char *arq) {
   FILE *f = fopen(arq, "r");
-  (void)fscanf(f, "%d", &num_nos);
+  if (f == NULL) {
+    printf("Erro ao abrir o arquivo de entrada.\n");
+    return;
+  }
+
+  if (fscanf(f, "%d", &num_nos) != 1) {
+    printf("Erro ao ler o número de nós.\n");
+    fclose(f);
+    return;
+  }
+
+  if (num_nos > MAX_NOS) {
+    printf("Número de nós excede o limite.\n");
+    fclose(f);
+    return;
+  }
+
+  num_caminhos = num_nos * num_nos;
+
   for (int i = 0; i < num_nos; i++) {
     vet_nos[i].id = i;
-    (void)fscanf(f, "%lf %lf", &vet_nos[i].x, &vet_nos[i].y);
+    if (fscanf(f, "%lf %lf", &vet_nos[i].x, &vet_nos[i].y) != 2) {
+      printf("Erro ao ler as coordenadas do nó %d.\n", i);
+      fclose(f);
+      return;
+    }
   }
+
   fclose(f);
 }
 
@@ -121,17 +152,17 @@ void ler_sol(const char *nome_arquivo, Sol &s) {
 }
 
 void clonar_sol(const Sol &s1, Sol &s2) {
-    s2.fo = s1.fo;
+  s2.fo = s1.fo;
 
-    // Copiar os hubs
-    for (int i = 0; i < num_hubs; i++) {
-        s2.vet_hubs[i] = s1.vet_hubs[i];
-    }
+  // Copiar os hubs
+  for (int i = 0; i < num_hubs; i++) {
+    s2.vet_hubs[i] = s1.vet_hubs[i];
+  }
 
-    // Copiar os caminhos
-    for (int i = 0; i < num_nos * num_nos; i++) {
-        s2.cam[i] = s1.cam[i];
-    }
+  // Copiar os caminhos
+  for (int i = 0; i < num_nos * num_nos; i++) {
+    s2.cam[i] = s1.cam[i];
+  }
 }
 
 void imprimir_sol(Sol &s) {
@@ -152,6 +183,7 @@ void imprimir_sol(Sol &s) {
 void calc_custo_dist() {
   memset(&vet_med_custo, 0, sizeof(vet_med_custo));
   memset(&mat_custo, 0, sizeof(mat_custo));
+
   int dist;
   for (int i = 0; i < num_nos; i++) {
     for (int j = 0; j < num_nos; j++) {
@@ -159,8 +191,11 @@ void calc_custo_dist() {
         dist = DISTANCIA(vet_nos[i], vet_nos[j]);
       else
         dist = 0;
-      vet_med_custo[i] += dist;
-      mat_custo[i][j] = dist;
+
+      if (i < MAX_NOS && j < MAX_NOS) {
+        vet_med_custo[i] += dist;
+        mat_custo[i][j] = dist;
+      }
     }
   }
 }
@@ -241,4 +276,66 @@ void calc_fo(Sol &s) {
     custo_max = max(custo_max, custo);
   }
   s.fo = custo_max;
+}
+
+void teste_sol_i(const char *instancia) {
+  Sol s;
+
+  ler_dados(instancia);
+
+  clock_t inicio = clock();
+
+  calc_custo_dist();
+  ordenar_nos();
+
+  declara_hubs(s);
+  melhor_hub(s);
+
+  heu_cons_gul(s);
+
+  clock_t fim = clock();
+
+  calc_fo(s);
+
+  //imprimir_sol(s);
+  //arqv_sol(s);
+
+  double tempo_execucao = (double)(fim - inicio) / CLOCKS_PER_SEC;
+
+
+  printf("\nTeste solução inicial\n");
+  printf("Tempo de execução: %.6f segundos\n", tempo_execucao);
+  printf("Função Objetivo (FO): %.2f\n", s.fo);
+}
+
+void teste_sol_1000(const char *instancia) {
+  Sol s;
+
+  ler_dados(instancia);
+
+  clock_t inicio = clock();
+  for (int i = 0; i < 1000; i++) {
+    calc_custo_dist();
+    ordenar_nos();
+
+    declara_hubs(s);
+    melhor_hub(s);
+
+    heu_cons_gul(s);
+  }
+
+  for (int i = 0; i < 1000; i++) {
+    calc_fo(s);
+  }
+
+  clock_t fim = clock();
+
+  double tempo_execucao = (double)(fim - inicio) / CLOCKS_PER_SEC;
+
+  // imprimir_sol(s);
+  // arqv_sol(s);
+
+  printf("\nTeste solução 1000\n");
+  printf("Tempo de execução: %.6f segundos\n", tempo_execucao);
+  printf("Função Objetivo (FO): %.2f\n", s.fo);
 }
