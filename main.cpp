@@ -1,10 +1,10 @@
 #include "hubsolver.h"
 
 using namespace std;
-int main() {
-  num_hubs = 50;
-  const char *instancia = "instancias/inst200.txt";
-  // const char* sol_oti="solucaoOtima.txt";
+int main(int arqc, char const *argv[]) {
+  num_hubs = std::stoi(argv[1]);
+  const char *instancia = (arqc > 2) ? argv[2] : "instancias/inst200.txt";
+  //const char *sol_oti = (arqc > 3) ? argv[3] : "solucaoOtima.txt";
 
   ler_dados(instancia);
 
@@ -18,7 +18,7 @@ int main() {
   //declara_hubs(s);
   //melhor_hub(s);
 
-  //heu_cons_gul(s);
+  //heu_cons_gul_ale(s);
 
   //calc_fo(s);
 
@@ -31,7 +31,7 @@ int main() {
   // imprimir_sol(s2);
   
   teste_sol_i(instancia);
-  //teste_sol_1000(instancia);
+  teste_sol_1000(instancia);
 
   return 0;
 }
@@ -201,81 +201,109 @@ void calc_custo_dist() {
 }
 
 void ordenar_nos() {
-  No aux;
-  int aux2;
-
   for (int i = 0; i < num_nos; i++)
     vet_ind_no[i] = i;
 
   for (int i = 0; i < num_nos - 1; i++) {
     for (int j = 0; j < num_nos - i - 1; j++) {
       if (vet_med_custo[j] > vet_med_custo[j + 1]) {
-        aux = vet_nos[j];
-        vet_nos[j] = vet_nos[j + 1];
-        vet_nos[j + 1] = aux;
-
-        aux2 = vet_ind_no[j];
-        vet_ind_no[j] = vet_ind_no[j + 1];
-        vet_ind_no[j + 1] = aux2;
-
-        float aux_custo = vet_med_custo[j];
-        vet_med_custo[j] = vet_med_custo[j + 1];
-        vet_med_custo[j + 1] = aux_custo;
+        swap(vet_med_custo[j], vet_med_custo[j + 1]);
+        swap(vet_ind_no[j], vet_ind_no[j + 1]);
       }
     }
   }
 }
 
 void declara_hubs(Sol &s) {
-  for (int i = 0; i < num_hubs; i++)
-    s.vet_hubs[i] = vet_ind_no[i];
+    s.vet_hubs[0] = vet_ind_no[0];
+    int count = 1;
+
+    for (int i = 1; i < num_nos && count < num_hubs; i++) {
+        bool longe = true;
+        for (int j = 0; j < count; j++) {
+            if (mat_custo[vet_ind_no[i]][s.vet_hubs[j]] < (BETA * 20000)) {
+                longe = false;
+                break;
+            }
+        }
+        if (longe) {
+            s.vet_hubs[count++] = vet_ind_no[i];
+        }
+    }
+
+    for (int i = count; i < num_hubs; i++) {
+        s.vet_hubs[i] = vet_ind_no[i];
+    }
 }
 
 void melhor_hub(Sol &s) {
-  for (int i = 0; i < num_nos; i++) {
-    double dist_min = numeric_limits<double>::max();
-    int melhor_h = -1;
+    for (int i = 0; i < num_nos; i++) {
+        double dist_min = numeric_limits<double>::max();
+        int melhor_h = -1;
 
-    for (int j = 0; j < num_hubs; j++) {
-      int hub = s.vet_hubs[j];
-      if (mat_custo[i][hub] < dist_min) {
-        dist_min = mat_custo[i][hub];
-        melhor_h = hub;
-      }
+        for (int j = 0; j < num_hubs; j++) {
+            int hub = s.vet_hubs[j];
+            double dist = mat_custo[i][hub];
+
+            if (dist < dist_min) {
+                dist_min = dist;
+                melhor_h = hub;
+            }
+        }
+        no_hub[i] = melhor_h;
     }
-    no_hub[i] = melhor_h;
-  }
 }
 
-void heu_cons_gul(Sol &s) {
-  for (int i = 0; i < num_nos; i++) {
-    for (int k = 0; k < num_nos; k++) {
-      int h1 = no_hub[i];
-      int h2 = no_hub[k];
-      int o_h1 = mat_custo[i][h1];
-      int h1_h2 = ALPHA * mat_custo[h1][h2];
-      int h2_ds = mat_custo[h2][k];
+void heu_cons_gul_ale(Sol &s) {
+    calc_custo_dist();
+    ordenar_nos();
+    declara_hubs(s);
+    melhor_hub(s);
 
-      double custo = o_h1 + h1_h2 + h2_ds;
+    double custo_max = 0;
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_real_distribution<> dis(0.0, 1.0);
+    double aleatoriedade = 0.0; 
 
-      int cam = i * num_nos + k;
-      s.cam[cam].custo = custo;
-      s.cam[cam].o = i;
-      s.cam[cam].h1 = h1;
-      s.cam[cam].h2 = h2;
-      s.cam[cam].ds = k;
+    for (int i = 0; i < num_nos; i++) {
+        for (int k = 0; k < num_nos; k++) {
+            int h1 = no_hub[i];
+            int h2 = no_hub[k];
+
+            double o_h1 = mat_custo[i][h1];
+            double h1_h2 = ALPHA * mat_custo[h1][h2];
+            double h2_ds = mat_custo[h2][k];
+
+            double custo = o_h1 + h1_h2 + h2_ds;
+
+            // Introduzindo aleatoriedade
+            if (dis(gen) < aleatoriedade) {
+                custo *= (0.9 + 0.2 * dis(gen)); // Variação de até ±10%
+            }
+
+            int cam = i * num_nos + k;
+            s.cam[cam].custo = custo;
+            s.cam[cam].o = i;
+            s.cam[cam].h1 = h1;
+            s.cam[cam].h2 = h2;
+            s.cam[cam].ds = k;
+
+            custo_max = max(custo_max, custo);
+        }
     }
-  }
+
+    s.fo = custo_max;
 }
 
 void calc_fo(Sol &s) {
-  double custo_max = 0;
+    double custo_max = 0;
 
-  for (int i = 0; i < num_nos * num_nos; i++) {
-    double custo = s.cam[i].custo;
-    custo_max = max(custo_max, custo);
-  }
-  s.fo = custo_max;
+    for (int i = 0; i < num_nos * num_nos; i++) {
+        double custo = s.cam[i].custo;
+        custo_max = max(custo_max, custo);
+    }
+    s.fo = custo_max;
 }
 
 void teste_sol_i(const char *instancia) {
@@ -285,13 +313,7 @@ void teste_sol_i(const char *instancia) {
 
   clock_t inicio = clock();
 
-  calc_custo_dist();
-  ordenar_nos();
-
-  declara_hubs(s);
-  melhor_hub(s);
-
-  heu_cons_gul(s);
+  heu_cons_gul_ale(s);
 
   clock_t fim = clock();
 
@@ -315,27 +337,25 @@ void teste_sol_1000(const char *instancia) {
 
   clock_t inicio = clock();
   for (int i = 0; i < 1000; i++) {
-    calc_custo_dist();
-    ordenar_nos();
-
-    declara_hubs(s);
-    melhor_hub(s);
-
-    heu_cons_gul(s);
+    heu_cons_gul_ale(s);
   }
-
+  clock_t fim = clock();
+  
+  clock_t inicio2 = clock();
   for (int i = 0; i < 1000; i++) {
     calc_fo(s);
   }
-
-  clock_t fim = clock();
+  clock_t fim2 = clock();
 
   double tempo_execucao = (double)(fim - inicio) / CLOCKS_PER_SEC;
 
+  double tempo_execucao2 = (double)(fim2 - inicio2) / CLOCKS_PER_SEC;
+
   // imprimir_sol(s);
-  // arqv_sol(s);
+  arqv_sol(s);
 
   printf("\nTeste solução 1000\n");
-  printf("Tempo de execução: %.6f segundos\n", tempo_execucao);
+  printf("Tempo de execução sol. inicial: %.6f segundos\n", tempo_execucao);
+  printf("Tempo de execução sol. calc fo: %.6f segundos\n", tempo_execucao2);
   printf("Função Objetivo (FO): %.2f\n", s.fo);
 }

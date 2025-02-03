@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <stdio.h>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -11,10 +12,12 @@
 #include <sstream>
 #include <time.h>
 #include <vector>
+#include <random>
 
 #define MAX_NOS 200
 #define MAX_HUBS 50
 #define ALPHA 0.75
+#define BETA 0.35
 #define DISTANCIA(p1, p2)                                                      \
   (sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y)))
 
@@ -54,7 +57,7 @@ void calc_custo_dist();
 void ordenar_nos();
 void declara_hubs(Sol &s);
 void melhor_hub(Sol &s);
-void heu_cons_gul(Sol &s);
+void heu_cons_gul_ale(Sol &s);
 void calc_fo(Sol &s);
 void imprimir_sol(Sol &s);
 void arqv_sol(Sol &s);
