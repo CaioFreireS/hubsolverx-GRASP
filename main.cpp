@@ -1,28 +1,29 @@
 #include "hubsolver.h"
+#include <algorithm>  
+
 
 using namespace std;
 int main(int arqc, char const *argv[]) {
-  num_hubs = std::stoi(argv[1]);
-  const char *instancia = (arqc > 2) ? argv[2] : "instancias/inst200.txt";
+  num_hubs = 50;
+  const char *instancia = (arqc > 2) ? argv[2] : "inst200.txt";
   //const char *sol_oti = (arqc > 3) ? argv[3] : "solucaoOtima.txt";
 
-  ler_dados(instancia);
-
-  // ler_sol(sol_oti, s);
-
-  //Sol s;
-
+  // ler_dados(instancia);
+  
+  Sol s;
+  ler_sol("solucaoOtima.txt", s);
+  
   //calc_custo_dist();
   //ordenar_nos();
 
   //declara_hubs(s);
   //melhor_hub(s);
 
-  //heu_cons_gul_ale(s);
+  heu_cons_gul_ale(s);
 
-  //calc_fo(s);
+  calc_fo(s);
 
-  //imprimir_sol(s);
+  imprimir_sol(s);
   //arqv_sol(s);
 
   // Sol s2;
@@ -30,8 +31,8 @@ int main(int arqc, char const *argv[]) {
   // clonar_sol(s,s2);
   // imprimir_sol(s2);
   
-  teste_sol_i(instancia);
-  teste_sol_1000(instancia);
+  // teste_sol_i(instancia);
+  // teste_sol_1000(instancia);
 
   return 0;
 }
@@ -91,65 +92,49 @@ void arqv_sol(Sol &s) {
 
 void ler_sol(const char *nome_arquivo, Sol &s) {
   FILE *arq = fopen(nome_arquivo, "r");
-  if (arq == NULL) {
-    printf("o arquivo solucaoOtima.txt não existe.\n");
-    return;
+  if (!arq) {
+      perror("Erro ao abrir o arquivo");
+      return;
   }
 
-  char buffer[100];
 
   if (fscanf(arq, "n: %d p: %d", &num_nos, &num_hubs) != 2) {
-    printf("Erro ao ler n e p.\n");
-    fclose(arq);
-    return;
+      printf("Erro: formato inválido ao ler 'n' e 'p'.\n");
+      fclose(arq);
+      return;
   }
 
   if (fscanf(arq, " FO: %lf", &s.fo) != 1) {
-    printf("Erro ao ler a função objetivo (FO).\n");
-    fclose(arq);
-    return;
+      printf("Erro: formato inválido ao ler a função objetivo.\n");
+      fclose(arq);
+      return;
   }
 
   if (fscanf(arq, " HUBS [%d", &s.vet_hubs[0]) != 1) {
-    printf("Erro ao ler hubs.\n");
+    no_hub[0] = s.vet_hubs[0];
+    printf("Erro: formato inválido ao ler hubs.\n");
     fclose(arq);
     return;
   }
+
   for (int i = 1; i < num_hubs; i++) {
-    if (fscanf(arq, ",%d", &s.vet_hubs[i]) != 1) {
-      printf("Erro ao ler hubs.\n");
+      if (fscanf(arq, ",%d", &s.vet_hubs[i]) != 1) {
+        no_hub[i] = s.vet_hubs[i];
+        printf("Erro: formato inválido ao ler hubs na posição %d.\n", i);
+        fclose(arq);
+        return;
+      }
+  }
+
+  if (fscanf(arq, " ]") != 0) { 
+      printf("Erro: fechamento incorreto da lista de hubs.\n");
       fclose(arq);
       return;
-    }
-  }
-
-  if (fgets(buffer, sizeof(buffer), arq) == NULL) {
-    printf("Erro ao ler fechamento dos hubs.\n");
-    fclose(arq);
-    return;
-  }
-
-  if (fgets(buffer, sizeof(buffer), arq) == NULL) {
-    printf("Erro ao ler o cabeçalho dos caminhos.\n");
-    fclose(arq);
-    return;
-  }
-
-  int i = 0;
-  while (i < num_nos * num_nos &&
-         fscanf(arq, "%d %d %d %d %lf", &s.cam[i].o, &s.cam[i].h1, &s.cam[i].h2,
-                &s.cam[i].ds, &s.cam[i].custo) == 5) {
-    i++;
-  }
-
-  if (i == 0) {
-    printf("Erro ao ler os caminhos. Nenhum caminho lido.\n");
-  } else {
-    printf("Leitura bem-sucedida! %d caminhos lidos.\n", i);
   }
 
   fclose(arq);
 }
+
 
 void clonar_sol(const Sol &s1, Sol &s2) {
   s2.fo = s1.fo;
@@ -215,43 +200,43 @@ void ordenar_nos() {
 }
 
 void declara_hubs(Sol &s) {
-    s.vet_hubs[0] = vet_ind_no[0];
-    int count = 1;
+  s.vet_hubs[0] = vet_ind_no[0];
+  int count = 1;
 
-    for (int i = 1; i < num_nos && count < num_hubs; i++) {
-        bool longe = true;
-        for (int j = 0; j < count; j++) {
-            if (mat_custo[vet_ind_no[i]][s.vet_hubs[j]] < (BETA * 20000)) {
-                longe = false;
-                break;
-            }
-        }
-        if (longe) {
-            s.vet_hubs[count++] = vet_ind_no[i];
-        }
-    }
+  for (int i = 1; i < num_nos && count < num_hubs; i++) {
+      bool longe = true;
+      for (int j = 0; j < count; j++) {
+          if (mat_custo[vet_ind_no[i]][s.vet_hubs[j]] < (BETA * 20000)) {
+              longe = false;
+              break;
+          }
+      }
+      if (longe) {
+          s.vet_hubs[count++] = vet_ind_no[i];
+      }
+  }
 
-    for (int i = count; i < num_hubs; i++) {
-        s.vet_hubs[i] = vet_ind_no[i];
-    }
+  for (int i = count; i < num_hubs; i++) {
+      s.vet_hubs[i] = vet_ind_no[i];
+  }
 }
 
 void melhor_hub(Sol &s) {
-    for (int i = 0; i < num_nos; i++) {
-        double dist_min = numeric_limits<double>::max();
-        int melhor_h = -1;
+  for (int i = 0; i < num_nos; i++) {
+      double dist_min = numeric_limits<double>::max();
+      int melhor_h = -1;
 
-        for (int j = 0; j < num_hubs; j++) {
-            int hub = s.vet_hubs[j];
-            double dist = mat_custo[i][hub];
+      for (int j = 0; j < num_hubs; j++) {
+          int hub = s.vet_hubs[j];
+          double dist = mat_custo[i][hub];
 
-            if (dist < dist_min) {
-                dist_min = dist;
-                melhor_h = hub;
-            }
-        }
-        no_hub[i] = melhor_h;
-    }
+          if (dist < dist_min) {  
+              dist_min = dist;
+              melhor_h = hub;
+          }
+      }
+      no_hub[i] = melhor_h;
+  }
 }
 
 void heu_cons_gul_ale(Sol &s) {
@@ -260,50 +245,50 @@ void heu_cons_gul_ale(Sol &s) {
     declara_hubs(s);
     melhor_hub(s);
 
-    double custo_max = 0;
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_real_distribution<> dis(0.0, 1.0);
-    double aleatoriedade = 0.0; 
-
     for (int i = 0; i < num_nos; i++) {
         for (int k = 0; k < num_nos; k++) {
             int h1 = no_hub[i];
             int h2 = no_hub[k];
 
-            double o_h1 = mat_custo[i][h1];
-            double h1_h2 = ALPHA * mat_custo[h1][h2];
-            double h2_ds = mat_custo[h2][k];
-
-            double custo = o_h1 + h1_h2 + h2_ds;
-
-            // Introduzindo aleatoriedade
-            if (dis(gen) < aleatoriedade) {
-                custo *= (0.9 + 0.2 * dis(gen)); // Variação de até ±10%
-            }
-
             int cam = i * num_nos + k;
-            s.cam[cam].custo = custo;
             s.cam[cam].o = i;
             s.cam[cam].h1 = h1;
             s.cam[cam].h2 = h2;
             s.cam[cam].ds = k;
 
-            custo_max = max(custo_max, custo);
         }
     }
 
-    s.fo = custo_max;
 }
 
 void calc_fo(Sol &s) {
-    double custo_max = 0;
+  for (int i = 0; i < num_nos; i++) {
+    for (int k = 0; k < num_nos; k++) {
+        int h1 = no_hub[i];
+        int h2 = no_hub[k];
 
-    for (int i = 0; i < num_nos * num_nos; i++) {
-        double custo = s.cam[i].custo;
-        custo_max = max(custo_max, custo);
+        double o_h1 = mat_custo[i][h1];
+        double h1_h2 = ALPHA * mat_custo[h1][h2];
+        double h2_ds = mat_custo[h2][k];
+
+        double custo = o_h1 + h1_h2 + h2_ds;
+
+        int cam = i * num_nos + k;
+        s.cam[cam].custo = custo;
+        s.cam[cam].o = i;
+        s.cam[cam].h1 = h1;
+        s.cam[cam].h2 = h2;
+        s.cam[cam].ds = k;
+
+      }
     }
-    s.fo = custo_max;
+  double custo_max = 0;
+
+  for (int i = 0; i < num_nos * num_nos; i++) {
+      double custo = s.cam[i].custo;
+      custo_max = max(custo_max, custo);
+  }
+  s.fo = custo_max;
 }
 
 void teste_sol_i(const char *instancia) {
