@@ -13,11 +13,16 @@
 #include <time.h>
 #include <vector>
 #include <random>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
 
 #define MAX_NOS 200
 #define MAX_HUBS 50
 #define ALPHA 0.75
 #define BETA 0.35
+#define DELTA 0.3
 #define DISTANCIA(p1, p2)                                                      \
   (sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y)))
 
@@ -52,6 +57,7 @@ double mat_custo_total[MAX_NOS][MAX_NOS];
 double mat_custo[MAX_NOS][MAX_NOS];
 
 // Funções
+//parte1
 void ler_dados(const char *arq);
 void calc_custo_dist();
 void ordenar_nos();
@@ -65,5 +71,10 @@ void ler_sol(const char *nome_arquivo, Sol &s);
 void clonar_sol(const Sol &s1, Sol &s2);
 void teste_sol_i(const char* instancia);
 void teste_sol_1000(const char* instancia);
+
+//parte 2
+void grasp(Sol &melhor_sol, double tempo_limite);
+void construir_solucao(Sol &s);
+void busca_local(Sol &s, Sol &melhor_sol);
 
 #endif // HUBSOLVER_H_INCLUDED

@@ -1,6 +1,8 @@
 #include "hubsolver.h"
-#include <algorithm>  
 
+//#define parte1
+#define parte2
+//#define teste
 
 using namespace std;
 int main(int arqc, char const *argv[]) {
@@ -8,30 +10,52 @@ int main(int arqc, char const *argv[]) {
   const char *instancia = (arqc > 2) ? argv[2] : "inst200.txt";
   //const char *sol_oti = (arqc > 3) ? argv[3] : "solucaoOtima.txt";
 
-  // ler_dados(instancia);
+  ler_dados(instancia);
+
+  #ifdef parte1
+    
+    Sol s;
+
+    heu_cons_gul(s);
+
+    calc_fo(s);
+
+    // imprimir_sol(s);
+
+    arqv_sol(s);
   
-  // Sol s;
-  // ler_sol("../solucaoOtima.txt", s);
-
-  // heu_cons_gul(s);
-
-  // calc_fo(s);
-
-  // imprimir_sol(s);
-
-  // arqv_sol(s);
-
+    // teste_sol_i(instancia);
+    // teste_sol_1000(instancia);
+  #endif
   // Sol s2;
 
   // clonar_sol(s,s2);
   // imprimir_sol(s2);
+
+  #ifdef teste
+    Sol s;
+    ler_sol("solucaoOtima.txt", s);
+    printf("melhorfo: %.2f\n", s.fo);
+  #endif
+
   
-  // teste_sol_i(instancia);
-  // teste_sol_1000(instancia);
+  #ifdef parte2
+    Sol melhor_sol;
+
+    ler_sol("solucaoOtima.txt", melhor_sol);
+
+    printf("Melhor fo (pré-grasp): %.2f\n", melhor_sol.fo);
+
+    double tempo_limite;
+    grasp(melhor_sol, 30);
+
+    printf("\nMelhor FO encontrada: %.2f\n", melhor_sol.fo);
+  #endif
 
   return 0;
 }
 
+//parte1
 void ler_dados(const char *arq) {
   FILE *f = fopen(arq, "r");
   if (f == NULL) {
@@ -340,4 +364,70 @@ void teste_sol_1000(const char *instancia) {
   printf("Tempo de execução sol. inicial: %.6f segundos\n", tempo_execucao);
   printf("Tempo de execução sol. calc fo: %.6f segundos\n", tempo_execucao2);
   printf("Função Objetivo (FO): %.2f\n", s.fo);
+}
+
+
+//parte2
+void grasp(Sol &melhor_sol, double tempo_limite) {
+    clock_t inicio = clock();
+    double tempo_decorrido;
+
+    for (int it = 0;; it++) {
+        tempo_decorrido = (double)(clock() - inicio) / CLOCKS_PER_SEC;
+        if (tempo_decorrido >= tempo_limite) break;
+
+        Sol s;
+        construir_solucao(s);
+        busca_local(s, melhor_sol);
+        calc_fo(s);
+
+        if (s.fo < melhor_sol.fo) {
+            melhor_sol = s;
+        }
+
+        printf("\nIteração %d - FO: %.2f", it + 1, s.fo);
+    }
+}
+
+void construir_solucao(Sol &s) {
+    calc_custo_dist();
+    ordenar_nos();
+
+    vector<int> candidatos(num_nos);
+    iota(candidatos.begin(), candidatos.end(), 0);
+
+    for (int i = 0; i < num_hubs; i++) {
+        int limite_rcl = max(1, (int)(DELTA * candidatos.size()));
+        int idx = rand() % limite_rcl;
+
+        s.vet_hubs[i] = candidatos[idx];
+        candidatos.erase(candidatos.begin() + idx);
+    }
+
+    melhor_hub(s);
+}
+
+void busca_local(Sol &s, Sol &melhor_sol) {
+    bool houve_melhora;
+
+    do {
+        houve_melhora = false;
+        for (int i = 0; i < num_hubs; i++) {
+            for (int j = 0; j < num_nos; j++) {
+                if (find(s.vet_hubs, s.vet_hubs + num_hubs, j) == s.vet_hubs + num_hubs) {
+                    int hub_antigo = s.vet_hubs[i];
+                    s.vet_hubs[i] = j;
+
+                    calc_fo(s);
+
+                    if (s.fo < melhor_sol.fo) {
+                        houve_melhora = true;
+                        melhor_sol = s;
+                    } else {
+                        s.vet_hubs[i] = hub_antigo; 
+                    }
+                }
+            }
+        }
+    } while (houve_melhora);
 }
