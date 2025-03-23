@@ -10,21 +10,16 @@ int main(int arqc, char const *argv[]) {
 
   // ler_dados(instancia);
   
-  Sol s;
-  ler_sol("solucaoOtima.txt", s);
-  
-  //calc_custo_dist();
-  //ordenar_nos();
+  // Sol s;
+  // ler_sol("../solucaoOtima.txt", s);
 
-  //declara_hubs(s);
-  //melhor_hub(s);
+  // heu_cons_gul(s);
 
-  heu_cons_gul_ale(s);
+  // calc_fo(s);
 
-  calc_fo(s);
+  // imprimir_sol(s);
 
-  imprimir_sol(s);
-  //arqv_sol(s);
+  // arqv_sol(s);
 
   // Sol s2;
 
@@ -97,29 +92,32 @@ void ler_sol(const char *nome_arquivo, Sol &s) {
       return;
   }
 
-
-  if (fscanf(arq, "n: %d p: %d", &num_nos, &num_hubs) != 2) {
+  int scan1=fscanf(arq, "n: %d p: %d", &num_nos, &num_hubs);
+  if (scan1 != 2) {
       printf("Erro: formato inválido ao ler 'n' e 'p'.\n");
       fclose(arq);
       return;
   }
 
-  if (fscanf(arq, " FO: %lf", &s.fo) != 1) {
+  int scan2=fscanf(arq, " FO: %lf", &s.fo);
+  if (scan2 != 1) {
       printf("Erro: formato inválido ao ler a função objetivo.\n");
       fclose(arq);
       return;
   }
 
-  if (fscanf(arq, " HUBS [%d", &s.vet_hubs[0]) != 1) {
-    no_hub[0] = s.vet_hubs[0];
+  int scan3 = fscanf(arq, " HUBS [%d", &s.vet_hubs[0]);
+  no_hub[0] = s.vet_hubs[0];
+  if (scan3 != 1) {
     printf("Erro: formato inválido ao ler hubs.\n");
     fclose(arq);
     return;
   }
 
   for (int i = 1; i < num_hubs; i++) {
-      if (fscanf(arq, ",%d", &s.vet_hubs[i]) != 1) {
-        no_hub[i] = s.vet_hubs[i];
+      int scan4=fscanf(arq, ",%d", &s.vet_hubs[i]);
+      no_hub[i] = s.vet_hubs[i];
+      if (scan4 != 1) {
         printf("Erro: formato inválido ao ler hubs na posição %d.\n", i);
         fclose(arq);
         return;
@@ -134,7 +132,6 @@ void ler_sol(const char *nome_arquivo, Sol &s) {
 
   fclose(arq);
 }
-
 
 void clonar_sol(const Sol &s1, Sol &s2) {
   s2.fo = s1.fo;
@@ -239,7 +236,7 @@ void melhor_hub(Sol &s) {
   }
 }
 
-void heu_cons_gul_ale(Sol &s) {
+void heu_cons_gul(Sol &s) {
     calc_custo_dist();
     ordenar_nos();
     declara_hubs(s);
@@ -298,7 +295,7 @@ void teste_sol_i(const char *instancia) {
 
   clock_t inicio = clock();
 
-  heu_cons_gul_ale(s);
+  heu_cons_gul(s);
 
   clock_t fim = clock();
 
@@ -322,7 +319,7 @@ void teste_sol_1000(const char *instancia) {
 
   clock_t inicio = clock();
   for (int i = 0; i < 1000; i++) {
-    heu_cons_gul_ale(s);
+    heu_cons_gul(s);
   }
   clock_t fim = clock();
   

@@ -57,7 +57,7 @@ void calc_custo_dist();
 void ordenar_nos();
 void declara_hubs(Sol &s);
 void melhor_hub(Sol &s);
-void heu_cons_gul_ale(Sol &s);
+void heu_cons_gul(Sol &s);
 void calc_fo(Sol &s);
 void imprimir_sol(Sol &s);
 void arqv_sol(Sol &s);
