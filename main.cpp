@@ -1,8 +1,10 @@
 #include "hubsolver.h"
 
-//#define parte1
-#define parte2
-//#define teste
+#define parte1
+//#define parte2
+#define teste
+#define declara1
+// #define declara2
 
 using namespace std;
 int main(int arqc, char const *argv[]) {
@@ -32,13 +34,9 @@ int main(int arqc, char const *argv[]) {
   // clonar_sol(s,s2);
   // imprimir_sol(s2);
 
-  #ifdef teste
-    Sol s;
-    ler_sol("solucaoOtima.txt", s);
-    printf("melhorfo: %.2f\n", s.fo);
+  #ifdef teste 
   #endif
 
-  
   #ifdef parte2
     Sol melhor_sol;
 
@@ -190,7 +188,7 @@ void calc_custo_dist() {
   memset(&vet_med_custo, 0, sizeof(vet_med_custo));
   memset(&mat_custo, 0, sizeof(mat_custo));
 
-  int dist;
+  double dist;
   for (int i = 0; i < num_nos; i++) {
     for (int j = 0; j < num_nos; j++) {
       if (i != j)
@@ -220,36 +218,40 @@ void ordenar_nos() {
   }
 }
 
-void declara_hubs(Sol &s) {
-  s.vet_hubs[0] = vet_ind_no[0];
-  int count = 1;
+#ifdef declara1
+  void declara_hubs(Sol &s) {
+    s.vet_hubs[0] = vet_ind_no[0];
+    int count = 1;
 
-  for (int i = 1; i < num_nos && count < num_hubs; i++) {
-      bool longe = true;
-      for (int j = 0; j < count; j++) {
-          if (mat_custo[vet_ind_no[i]][s.vet_hubs[j]] < (BETA * 20000)) {
-              longe = false;
-              break;
-          }
-      }
-      if (longe) {
-          s.vet_hubs[count++] = vet_ind_no[i];
-      }
-  }
+    for (int i = 1; i < num_nos && count < num_hubs; i++) {
+        bool longe = true;
+        for (int j = 0; j < count; j++) {
+            if (mat_custo[vet_ind_no[i]][s.vet_hubs[j]] < (OMEGA * 20000)) {
+                longe = false;
+                break;
+            }
+        }
+        if (longe) {
+            s.vet_hubs[count++] = vet_ind_no[i];
+        }
+    }
 
-  for (int i = count; i < num_hubs; i++) {
-      s.vet_hubs[i] = vet_ind_no[i];
+    for (int i = count; i < num_hubs; i++) {
+        s.vet_hubs[i] = vet_ind_no[i];
+    }
   }
-}
+#endif
 
 void melhor_hub(Sol &s) {
+  double dist, dist_min;
+  int melhor_h,hub;
   for (int i = 0; i < num_nos; i++) {
-      double dist_min = numeric_limits<double>::max();
-      int melhor_h = -1;
+      dist_min = numeric_limits<double>::max();
+      melhor_h = -1;
 
       for (int j = 0; j < num_hubs; j++) {
-          int hub = s.vet_hubs[j];
-          double dist = mat_custo[i][hub];
+          hub = s.vet_hubs[j];
+          dist = mat_custo[i][hub];
 
           if (dist < dist_min) {  
               dist_min = dist;
@@ -260,11 +262,50 @@ void melhor_hub(Sol &s) {
   }
 }
 
+#ifdef declara2
+void declara_hubs(Sol &s) {
+  vector<bool> selecionado(num_nos, false);
+  s.vet_hubs[0] = vet_ind_no[0];
+  selecionado[vet_ind_no[0]] = true;
+  int count = 1;
+
+  for (int i = 1; i < num_nos && count < num_hubs; i++) {
+      int melhor_no = -1;
+      double melhor_distancia = -1;
+
+      for (int j = 0; j < num_nos; j++) {
+          if (!selecionado[j]) {
+              double distancia_minima = numeric_limits<double>::max();
+              for (int k = 0; k < count; k++) {
+                  distancia_minima = min(distancia_minima, mat_custo[j][s.vet_hubs[k]]);
+              }
+              if (distancia_minima > melhor_distancia) {
+                  melhor_distancia = distancia_minima;
+                  melhor_no = j;
+              }
+          }
+      }
+
+      if (melhor_no != -1) {
+          s.vet_hubs[count++] = melhor_no;
+          selecionado[melhor_no] = true;
+      }
+  }
+
+  for (int i = count; i < num_hubs; i++) {
+      s.vet_hubs[i] = vet_ind_no[i];
+  }
+}
+#endif
+
 void heu_cons_gul(Sol &s) {
     calc_custo_dist();
     ordenar_nos();
     declara_hubs(s);
-    melhor_hub(s);
+
+    #ifdef declara1
+      melhor_hub(s);
+    #endif
 
     for (int i = 0; i < num_nos; i++) {
         for (int k = 0; k < num_nos; k++) {
@@ -288,19 +329,16 @@ void calc_fo(Sol &s) {
         int h1 = no_hub[i];
         int h2 = no_hub[k];
 
-        double o_h1 = mat_custo[i][h1];
+        double o_h1 = BETA * mat_custo[i][h1];
         double h1_h2 = ALPHA * mat_custo[h1][h2];
-        double h2_ds = mat_custo[h2][k];
+        double h2_ds = LAMBDA * mat_custo[h2][k];
+
+        if (i == k) h1_h2 = 0;
 
         double custo = o_h1 + h1_h2 + h2_ds;
 
         int cam = i * num_nos + k;
         s.cam[cam].custo = custo;
-        s.cam[cam].o = i;
-        s.cam[cam].h1 = h1;
-        s.cam[cam].h2 = h2;
-        s.cam[cam].ds = k;
-
       }
     }
   double custo_max = 0;
@@ -390,21 +428,36 @@ void grasp(Sol &melhor_sol, double tempo_limite) {
 }
 
 void construir_solucao(Sol &s) {
-    calc_custo_dist();
-    ordenar_nos();
+  // Inicializa os candidatos com os índices dos nós ordenados
+  vector<int> candidatos(num_nos);
+  iota(candidatos.begin(), candidatos.end(), 0);
 
-    vector<int> candidatos(num_nos);
-    iota(candidatos.begin(), candidatos.end(), 0);
+  // Seleciona hubs de forma balanceada, considerando a média de custo
+  for (int i = 0; i < num_hubs; i++) {
+      int limite_rcl = max(1, (int)(DELTA * candidatos.size()));
+      int idx = rand() % limite_rcl;
 
-    for (int i = 0; i < num_hubs; i++) {
-        int limite_rcl = max(1, (int)(DELTA * candidatos.size()));
-        int idx = rand() % limite_rcl;
+      s.vet_hubs[i] = vet_ind_no[idx];
+      candidatos.erase(candidatos.begin() + idx);
+  }
 
-        s.vet_hubs[i] = candidatos[idx];
-        candidatos.erase(candidatos.begin() + idx);
-    }
+  // Associa cada nó ao hub mais próximo
+  for (int i = 0; i < num_nos; i++) {
+      double dist_min = numeric_limits<double>::max();
+      int melhor_hub = -1;
 
-    melhor_hub(s);
+      for (int j = 0; j < num_hubs; j++) {
+          int hub = s.vet_hubs[j];
+          double dist = mat_custo[i][hub];
+
+          if (dist < dist_min) {
+              dist_min = dist;
+              melhor_hub = hub;
+          }
+      }
+
+      no_hub[i] = melhor_hub;
+  }
 }
 
 void busca_local(Sol &s, Sol &melhor_sol) {
