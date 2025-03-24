@@ -1,18 +1,18 @@
 #include "hubsolver.h"
 
-// #define parte1
-#define parte2
+// #define parte1test
+// #define parte2test
 // #define teste
+
 
 using namespace std;
 int main(int arqc, char const *argv[]) {
-  system("cls");
   num_hubs = 50;
   const char *instancia = (arqc > 2) ? argv[2] : "inst200.txt";
   //const char *sol_oti = (arqc > 3) ? argv[3] : "solucaoOtima.txt";
 
   ler_dados(instancia);
-  #ifdef parte1
+  #ifdef parte1test
     
     Sol s;
 
@@ -38,7 +38,7 @@ int main(int arqc, char const *argv[]) {
     LRC(s2);
   #endif
 
-  #ifdef parte2
+  #ifdef parte2test
     Sol melhor_sol;
 
     ler_sol("solucaoOtima.txt", melhor_sol);
@@ -220,10 +220,9 @@ void ordenar_nos() {
   }
 }
 
-#ifdef declara1
-  void declara_hubs(Sol &s) {
-    s.vet_hubs[0] = vet_ind_no[0];
-    int count = 1;
+void declara_hubs(Sol &s) {
+  s.vet_hubs[0] = vet_ind_no[0];
+  int count = 1;
 
   for (int i = 1; i < num_nos && count < num_hubs; i++) {
       bool longe = true;
@@ -242,7 +241,6 @@ void ordenar_nos() {
         s.vet_hubs[i] = vet_ind_no[i];
     }
   }
-#endif
 
 void melhor_hub(Sol &s) {
   double dist, dist_min;
@@ -382,9 +380,6 @@ void grasp(Sol &melhor_sol, double tempo_limite, const char *Instancia) {
 
         Sol s;
         LRC(s);
-        if (s.fo < melhor_sol.fo) {
-            melhor_sol = s;
-        }
         busca_local(s, melhor_sol);
         calc_fo(s);
 
@@ -392,7 +387,7 @@ void grasp(Sol &melhor_sol, double tempo_limite, const char *Instancia) {
             melhor_sol = s;
         }
 
-        printf("\nIteração %d - FO: %.2f", it + 1, s.fo);
+        // printf("\nIteração %d - FO: %.2f", it + 1, s.fo);
     }
 }
 
