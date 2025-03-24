@@ -84,5 +84,13 @@ void grasp(Sol &melhor_sol, double tempo_limite, const char *Instancia);
 void seleciona_hubs(double limite);
 void LRC(Sol &s);
 void busca_local(Sol &s, Sol &melhor_sol);
+typedef struct resultado{
+  double melhor_fo, media_fo, desvio;
+  double melhor_tempo, media_tempo;
+}Res;
+
+void teste_grasp();
+void resultado(Res r,const char* instancia, int p, double tempo);
+
 
 #endif // HUBSOLVER_H_INCLUDED

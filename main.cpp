@@ -3,6 +3,8 @@
 // #define parte1test
 // #define parte2test
 // #define teste
+// #define parte1
+#define parte2
 
 
 using namespace std;
@@ -23,20 +25,18 @@ int main(int arqc, char const *argv[]) {
     // imprimir_sol(s);
 
     arqv_sol(s,"solucaoOtima.txt");
-    
+    // Sol s2;
   
-    // teste_sol_i(instancia);
-    // teste_sol_1000(instancia);
+    // clonar_sol(s,s2);
+    // imprimir_sol(s2);
+    
   #endif
-  // Sol s2;
 
-  // clonar_sol(s,s2);
-  // imprimir_sol(s2);
-
-  #ifdef teste
-    Sol s2;
-    LRC(s2);
+  #ifdef parte1
+    teste_sol_i(instancia);
+    teste_sol_1000(instancia);
   #endif
+
 
   #ifdef parte2test
     Sol melhor_sol;
@@ -50,6 +50,10 @@ int main(int arqc, char const *argv[]) {
     grasp(melhor_sol, 30, inst);
 
     printf("\nMelhor FO encontrada: %.2f\n", melhor_sol.fo);
+  #endif
+
+  #ifdef parte2
+    teste_grasp();
   #endif
 
   return 0;
@@ -475,4 +479,146 @@ void busca_local(Sol &s, Sol &melhor_sol) {
             }
         }
     } while (houve_melhora);
+}
+
+void resultado(Res r,const char* instancia, int p, double tempo) {
+  Sol s;
+  clock_t inicio,fim;
+  double tempo_execucao,melhor_tempo=numeric_limits<double>::max(),media_tempo,soma_tempo = 0,melhor_fo=numeric_limits<double>::max(),media_fo,soma_fo = 0, desvio;
+  num_hubs = p;
+
+  for(int i=0;i<3;i++){
+    inicio = clock();
+    grasp(s, tempo, instancia);
+    fim = clock();
+    
+    if (s.fo<melhor_fo)
+      melhor_fo = s.fo;
+
+    soma_fo += s.fo;
+  
+    tempo_execucao = (double)(fim - inicio) / CLOCKS_PER_SEC;
+
+    if (tempo_execucao<melhor_tempo)
+      melhor_tempo = tempo_execucao;
+
+    soma_tempo += tempo_execucao;
+  }
+
+  media_tempo = soma_tempo/3;
+  media_fo = soma_fo/3;
+
+  desvio=((media_fo-melhor_fo)/melhor_fo)*100;
+
+  r.melhor_fo = melhor_fo;
+  r.media_fo = media_fo;
+  r.melhor_tempo = melhor_tempo;
+  r.media_tempo = media_tempo;
+  r.desvio = desvio;
+}
+
+void teste_grasp() {
+  double min=60;
+
+  Res r5_3;
+  resultado(r5_3,"inst5.txt",3,min);
+
+  // Res r10_2;
+  // resultado(r10_2,"inst10.txt",2,min);
+  // Res r10_3;
+  // resultado(r10_3,"inst10.txt",3,min);
+
+  // Res r20_2;
+  // resultado(r20_2,"inst20.txt",2,min);
+  // Res r20_3;
+  // resultado(r20_3,"inst20.txt",3,min);
+  // Res r20_5;
+  // resultado(r20_5,"inst20.txt",5,min);
+
+  // Res r25_2;
+  // resultado(r25_2,"inst25.txt",2,min);
+  // Res r25_4;
+  // resultado(r25_4,"inst25.txt",4,min);
+  // Res r25_5;
+  // resultado(r25_5,"inst25.txt",5,min);
+
+  // Res r40_2;
+  // resultado(r40_2,"inst40.txt",2,min);
+  // Res r40_5;
+  // resultado(r40_5,"inst40.txt",5,min);
+  // Res r40_10;
+  // resultado(r40_10,"inst40.txt",10,min);
+  
+  // Res r50_2;
+  // resultado(r50_2,"inst50.txt",2,min);
+  // Res r50_3;
+  // resultado(r50_3,"inst50.txt",3,min);
+  // Res r50_5;
+  // resultado(r50_5,"inst50.txt",5,min);
+  // Res r50_10;
+  // resultado(r50_10,"inst50.txt",10,min);
+
+  // Res r100_4;
+  // resultado(r100_4,"inst100.txt",4,min*3);
+  // Res r100_10;
+  // resultado(r100_10,"inst100.txt",10,min*3);
+  // Res r100_20;
+  // resultado(r100_20,"inst100.txt",20,min*3);
+  // Res r100_40;
+  // resultado(r100_10,"inst100.txt",40,min*3);
+  
+  // Res r200_3;
+  // resultado(r200_3,"inst200.txt",3,min*3);
+  // Res r200_5;
+  // resultado(r200_5,"inst200.txt",5,min*3);
+  // Res r200_10;
+  // resultado(r200_10,"inst200.txt",10,min*3);
+  // Res r200_30;
+  // resultado(r200_30,"inst200.txt",30,min*3);
+  // Res r200_50;
+  // resultado(r200_50,"inst200.txt",50,min*3);
+
+  // double soma_melhor_fo = r5_3.melhor_fo + r10_2.melhor_fo + r10_3.melhor_fo + r20_2.melhor_fo + r20_3.melhor_fo + r20_5.melhor_fo + r25_2.melhor_fo + r25_4.melhor_fo + r25_5.melhor_fo + r40_2.melhor_fo + r40_5.melhor_fo + r40_10.melhor_fo + r50_2.melhor_fo + r50_3.melhor_fo + r50_5.melhor_fo + r50_10.melhor_fo + r100_4.melhor_fo + r100_10.melhor_fo + r100_20.melhor_fo + r100_40.melhor_fo + r200_3.melhor_fo + r200_5.melhor_fo + r200_10.melhor_fo + r200_30.melhor_fo + r200_50.melhor_fo;
+  // double soma_media_fo = r5_3.media_fo + r10_2.media_fo + r10_3.media_fo + r20_2.media_fo + r20_3.media_fo + r20_5.media_fo + r25_2.media_fo + r25_4.media_fo + r25_5.media_fo + r40_2.media_fo + r40_5.media_fo + r40_10.media_fo + r50_2.media_fo + r50_3.media_fo + r50_5.media_fo + r50_10.media_fo + r100_4.media_fo + r100_10.media_fo + r100_20.media_fo + r100_40.media_fo + r200_3.media_fo + r200_5.media_fo + r200_10.media_fo + r200_30.media_fo + r200_50.media_fo;
+  // double soma_melhor_tempo = r5_3.melhor_tempo + r10_2.melhor_tempo + r10_3.melhor_tempo + r20_2.melhor_tempo + r20_3.melhor_tempo + r20_5.melhor_tempo + r25_2.melhor_tempo + r25_4.melhor_tempo + r25_5.melhor_tempo + r40_2.melhor_tempo + r40_5.melhor_tempo + r40_10.melhor_tempo + r50_2.melhor_tempo + r50_3.melhor_tempo + r50_5.melhor_tempo + r50_10.melhor_tempo + r100_4.melhor_tempo + r100_10.melhor_tempo + r100_20.melhor_tempo + r100_40.melhor_tempo + r200_3.melhor_tempo + r200_5.melhor_tempo + r200_10.melhor_tempo + r200_30.melhor_tempo + r200_50.melhor_tempo;
+  // double soma_media_tempo = r5_3.media_tempo + r10_2.media_tempo + r10_3.media_tempo + r20_2.media_tempo + r20_3.media_tempo + r20_5.media_tempo + r25_2.media_tempo + r25_4.media_tempo + r25_5.media_tempo + r40_2.media_tempo + r40_5.media_tempo + r40_10.media_tempo + r50_2.media_tempo + r50_3.media_tempo + r50_5.media_tempo + r50_10.media_tempo + r100_4.media_tempo + r100_10.media_tempo + r100_20.media_tempo + r100_40.media_tempo + r200_3.media_tempo + r200_5.media_tempo + r200_10.media_tempo + r200_30.media_tempo + r200_50.media_tempo;
+  // double soma_desvio = r5_3.desvio + r10_2.desvio + r10_3.desvio + r20_2.desvio + r20_3.desvio + r20_5.desvio + r25_2.desvio + r25_4.desvio + r25_5.desvio + r40_2.desvio + r40_5.desvio + r40_10.desvio + r50_2.desvio + r50_3.desvio + r50_5.desvio + r50_10.desvio + r100_4.desvio + r100_10.desvio + r100_20.desvio + r100_40.desvio + r200_3.desvio + r200_5.desvio + r200_10.desvio + r200_30.desvio + r200_50.desvio;
+  
+  // double media_melhor_fo = soma_melhor_fo/25;
+  // double media_media_fo = soma_media_fo/25;
+  // double media_melhor_tempo = soma_melhor_tempo/25;
+  // double media_media_tempo = soma_media_tempo/25;
+  // double media_desvio = soma_desvio/25;
+  
+  FILE *arq;
+  arq = fopen("Resultados.txt", "w");
+
+  fprintf(arq, "Instância || p || Melhor FO || FO Media || Desvio || Tempo Medio(seg.) || Melhor Tempo(seg.)\n");
+  fprintf(arq, "inst5.txt || 3 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r5_3.melhor_fo, r5_3.media_fo, r5_3.desvio, r5_3.media_tempo, r5_3.melhor_tempo);
+  // fprintf(arq, "inst10.txt || 2 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r10_2.melhor_fo, r10_2.media_fo, r10_2.desvio, r10_2.media_tempo, r10_2.melhor_tempo);
+  // fprintf(arq, "inst10.txt || 3 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r10_3.melhor_fo, r10_3.media_fo, r10_3.desvio, r10_3.media_tempo, r10_3.melhor_tempo);
+  // fprintf(arq, "inst20.txt || 2 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r20_2.melhor_fo, r20_2.media_fo, r20_2.desvio, r20_2.media_tempo, r20_2.melhor_tempo);
+  // fprintf(arq, "inst20.txt || 3 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r20_3.melhor_fo, r20_3.media_fo, r20_3.desvio, r20_3.media_tempo, r20_3.melhor_tempo);
+  // fprintf(arq, "inst20.txt || 5 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r20_5.melhor_fo, r20_5.media_fo, r20_5.desvio, r20_5.media_tempo, r20_5.melhor_tempo);
+  // fprintf(arq, "inst25.txt || 2 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r25_2.melhor_fo, r25_2.media_fo, r25_2.desvio, r25_2.media_tempo, r25_2.melhor_tempo);
+  // fprintf(arq, "inst25.txt || 4 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r25_4.melhor_fo, r25_4.media_fo, r25_4.desvio, r25_4.media_tempo, r25_4.melhor_tempo);
+  // fprintf(arq, "inst25.txt || 5 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r25_5.melhor_fo, r25_5.media_fo, r25_5.desvio, r25_5.media_tempo, r25_5.melhor_tempo);
+  // fprintf(arq, "inst40.txt || 2 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r40_2.melhor_fo, r40_2.media_fo, r40_2.desvio, r40_2.media_tempo, r40_2.melhor_tempo);
+  // fprintf(arq, "inst40.txt || 5 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r40_5.melhor_fo, r40_5.media_fo, r40_5.desvio, r40_5.media_tempo, r40_5.melhor_tempo);
+  // fprintf(arq, "inst40.txt || 10 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r40_10.melhor_fo, r40_10.media_fo, r40_10.desvio, r40_10.media_tempo, r40_10.melhor_tempo);
+  // fprintf(arq, "inst50.txt || 2 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r50_2.melhor_fo, r50_2.media_fo, r50_2.desvio, r50_2.media_tempo, r50_2.melhor_tempo);
+  // fprintf(arq, "inst50.txt || 3 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r50_3.melhor_fo, r50_3.media_fo, r50_3.desvio, r50_3.media_tempo, r50_3.melhor_tempo);
+  // fprintf(arq, "inst50.txt || 5 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r50_5.melhor_fo, r50_5.media_fo, r50_5.desvio, r50_5.media_tempo, r50_5.melhor_tempo);
+  // fprintf(arq, "inst50.txt || 10 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r50_10.melhor_fo, r50_10.media_fo, r50_10.desvio, r50_10.media_tempo, r50_10.melhor_tempo);
+  // fprintf(arq, "inst100.txt || 4 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r100_4.melhor_fo, r100_4.media_fo, r100_4.desvio, r100_4.media_tempo, r100_4.melhor_tempo);
+  // fprintf(arq, "inst100.txt || 10 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r100_10.melhor_fo, r100_10.media_fo, r100_10.desvio, r100_10.media_tempo, r100_10.melhor_tempo);
+  // fprintf(arq, "inst100.txt || 20 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r100_20.melhor_fo, r100_20.media_fo, r100_20.desvio, r100_20.media_tempo, r100_20.melhor_tempo);
+  // fprintf(arq, "inst100.txt || 40 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r100_40.melhor_fo, r100_40.media_fo, r100_40.desvio, r100_40.media_tempo, r100_40.melhor_tempo);
+  // fprintf(arq, "inst200.txt || 3 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r200_3.melhor_fo, r200_3.media_fo, r200_3.desvio, r200_3.media_tempo, r200_3.melhor_tempo);
+  // fprintf(arq, "inst200.txt || 5 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r200_5.melhor_fo, r200_5.media_fo, r200_5.desvio, r200_5.media_tempo, r200_5.melhor_tempo);
+  // fprintf(arq, "inst200.txt || 10 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r200_10.melhor_fo, r200_10.media_fo, r200_10.desvio, r200_10.media_tempo, r200_10.melhor_tempo);
+  // fprintf(arq, "inst200.txt || 30 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r200_30.melhor_fo, r200_30.media_fo, r200_30.desvio, r200_30.media_tempo, r200_30.melhor_tempo);
+  // fprintf(arq, "inst200.txt || 50 || %.2f || %.2f || %.2f || %.6f || %.6f\n", r200_50.melhor_fo, r200_50.media_fo, r200_50.desvio, r200_50.media_tempo, r200_50.melhor_tempo);
+  // fprintf(arq, "Media || || %.2f || %.2f || %.2f || %.6f || %.6f\n", media_melhor_fo, media_media_fo, media_desvio, media_media_tempo, media_melhor_tempo);
+  fclose(arq);
 }
