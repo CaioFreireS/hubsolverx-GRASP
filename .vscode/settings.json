@@ -3,6 +3,7 @@
         "*.sqlbook": "sql",
         "*.ndjson": "jsonl",
         "*.dbclient-js": "javascript",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "limits": "cpp"
     }
 }

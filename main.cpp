@@ -1,17 +1,17 @@
 #include "hubsolver.h"
 
-//#define parte1
+// #define parte1
 #define parte2
-//#define teste
+// #define teste
 
 using namespace std;
 int main(int arqc, char const *argv[]) {
+  system("cls");
   num_hubs = 50;
   const char *instancia = (arqc > 2) ? argv[2] : "inst200.txt";
   //const char *sol_oti = (arqc > 3) ? argv[3] : "solucaoOtima.txt";
 
   ler_dados(instancia);
-
   #ifdef parte1
     
     Sol s;
@@ -22,7 +22,8 @@ int main(int arqc, char const *argv[]) {
 
     // imprimir_sol(s);
 
-    arqv_sol(s);
+    arqv_sol(s,"solucaoOtima.txt");
+    
   
     // teste_sol_i(instancia);
     // teste_sol_1000(instancia);
@@ -33,9 +34,8 @@ int main(int arqc, char const *argv[]) {
   // imprimir_sol(s2);
 
   #ifdef teste
-    Sol s;
-    ler_sol("solucaoOtima.txt", s);
-    printf("melhorfo: %.2f\n", s.fo);
+    Sol s2;
+    LRC(s2);
   #endif
 
   
@@ -46,8 +46,9 @@ int main(int arqc, char const *argv[]) {
 
     printf("Melhor fo (pré-grasp): %.2f\n", melhor_sol.fo);
 
+    const char *inst = "inst200.txt";
     double tempo_limite;
-    grasp(melhor_sol, 30);
+    grasp(melhor_sol, 30, inst);
 
     printf("\nMelhor FO encontrada: %.2f\n", melhor_sol.fo);
   #endif
@@ -89,9 +90,9 @@ void ler_dados(const char *arq) {
   fclose(f);
 }
 
-void arqv_sol(Sol &s) {
+void arqv_sol(Sol &s, const char *nome_arquivo) {
   FILE *arq;
-  arq = fopen("solucaoOtima.txt", "w");
+  arq = fopen(nome_arquivo, "w");
 
   fprintf(arq, "n: %d      p: %d\n", num_nos, num_hubs);
   fprintf(arq, "FO:      %.2f\n", s.fo);
@@ -227,7 +228,7 @@ void declara_hubs(Sol &s) {
   for (int i = 1; i < num_nos && count < num_hubs; i++) {
       bool longe = true;
       for (int j = 0; j < count; j++) {
-          if (mat_custo[vet_ind_no[i]][s.vet_hubs[j]] < (BETA * 20000)) {
+          if (mat_custo[vet_ind_no[i]][s.vet_hubs[j]] < (DELTA * 20000)) {
               longe = false;
               break;
           }
@@ -260,12 +261,15 @@ void melhor_hub(Sol &s) {
   }
 }
 
-void heu_cons_gul(Sol &s) {
-    calc_custo_dist();
-    ordenar_nos();
-    declara_hubs(s);
-    melhor_hub(s);
+void tratar_dados(Sol &s) {
+  calc_custo_dist();
+  ordenar_nos();
+  declara_hubs(s);
+  melhor_hub(s);
+}
 
+void heu_cons_gul(Sol &s) {
+  tratar_dados(s);
     for (int i = 0; i < num_nos; i++) {
         for (int k = 0; k < num_nos; k++) {
             int h1 = no_hub[i];
@@ -288,9 +292,9 @@ void calc_fo(Sol &s) {
         int h1 = no_hub[i];
         int h2 = no_hub[k];
 
-        double o_h1 = mat_custo[i][h1];
+        double o_h1 = BETA * mat_custo[i][h1];
         double h1_h2 = ALPHA * mat_custo[h1][h2];
-        double h2_ds = mat_custo[h2][k];
+        double h2_ds = LAMBDA * mat_custo[h2][k];
 
         double custo = o_h1 + h1_h2 + h2_ds;
 
@@ -358,7 +362,7 @@ void teste_sol_1000(const char *instancia) {
   double tempo_execucao2 = (double)(fim2 - inicio2) / CLOCKS_PER_SEC;
 
   // imprimir_sol(s);
-  arqv_sol(s);
+  arqv_sol(s, "solucao1000.txt");
 
   printf("\nTeste solução 1000\n");
   printf("Tempo de execução sol. inicial: %.6f segundos\n", tempo_execucao);
@@ -368,16 +372,21 @@ void teste_sol_1000(const char *instancia) {
 
 
 //parte2
-void grasp(Sol &melhor_sol, double tempo_limite) {
+void grasp(Sol &melhor_sol, double tempo_limite, const char *Instancia) {
     clock_t inicio = clock();
     double tempo_decorrido;
+    ler_dados(Instancia);
+    tratar_dados(melhor_sol);
 
     for (int it = 0;; it++) {
         tempo_decorrido = (double)(clock() - inicio) / CLOCKS_PER_SEC;
         if (tempo_decorrido >= tempo_limite) break;
 
         Sol s;
-        construir_solucao(s);
+        LRC(s);
+        if (s.fo < melhor_sol.fo) {
+            melhor_sol = s;
+        }
         busca_local(s, melhor_sol);
         calc_fo(s);
 
@@ -389,22 +398,64 @@ void grasp(Sol &melhor_sol, double tempo_limite) {
     }
 }
 
-void construir_solucao(Sol &s) {
-    calc_custo_dist();
-    ordenar_nos();
+void seleciona_hubs(double limite) {
+  std::srand(std::time(0));
+  std::vector<int> candidatos_maiores, candidatos_menores;
 
-    vector<int> candidatos(num_nos);
-    iota(candidatos.begin(), candidatos.end(), 0);
+  for (int i = 0; i < num_nos; i++) {
+      if (vet_med_custo[i] >= limite) {
+          candidatos_maiores.push_back(i);
+      } else {
+          candidatos_menores.push_back(i);
+      }
+  }
 
-    for (int i = 0; i < num_hubs; i++) {
-        int limite_rcl = max(1, (int)(DELTA * candidatos.size()));
-        int idx = rand() % limite_rcl;
+  std::random_shuffle(candidatos_maiores.begin(), candidatos_maiores.end());
+  std::random_shuffle(candidatos_menores.begin(), candidatos_menores.end());
 
-        s.vet_hubs[i] = candidatos[idx];
-        candidatos.erase(candidatos.begin() + idx);
+  int j = 0;
+
+  for (int i = 0; i < (int)candidatos_maiores.size() && j < num_hubs * 2; i++) {
+      vet_ind_no[j++] = candidatos_maiores[i];
+  }
+
+  for (int i = 0; i < (int)candidatos_menores.size() && j < num_hubs * 2; i++) {
+      vet_ind_no[j++] = candidatos_menores[i];
+  }
+}
+
+void LRC(Sol &s) {
+  calc_custo_dist();
+  ordenar_nos();
+
+  double cmin, cmax, limite;
+  cmin = *min_element(vet_med_custo, vet_med_custo + num_nos);
+  cmax = *max_element(vet_med_custo, vet_med_custo + num_nos);
+
+  limite = cmin + OMEGA * (cmax - cmin);
+
+  seleciona_hubs(limite);
+
+  for (int i = 0; i < num_hubs; i++) {
+      s.vet_hubs[i] = vet_ind_no[i];
+  }
+
+  for (int i = 0; i < num_nos; i++) {
+    bool eh_hub = false;
+    for (int j = 0; j < num_hubs; j++) {
+        if (s.vet_hubs[j] == i) {
+            eh_hub = true;
+            break;
+        }
     }
+    if (eh_hub) {
+        no_hub[i] = i;
+        continue;
+    }
+  }
 
-    melhor_hub(s);
+  calc_fo(s);
+  arqv_sol(s, "solucaoLRC.txt");
 }
 
 void busca_local(Sol &s, Sol &melhor_sol) {
