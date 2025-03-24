@@ -38,7 +38,6 @@ int main(int arqc, char const *argv[]) {
     LRC(s2);
   #endif
 
-  
   #ifdef parte2
     Sol melhor_sol;
 
@@ -191,7 +190,7 @@ void calc_custo_dist() {
   memset(&vet_med_custo, 0, sizeof(vet_med_custo));
   memset(&mat_custo, 0, sizeof(mat_custo));
 
-  int dist;
+  double dist;
   for (int i = 0; i < num_nos; i++) {
     for (int j = 0; j < num_nos; j++) {
       if (i != j)
@@ -221,9 +220,10 @@ void ordenar_nos() {
   }
 }
 
-void declara_hubs(Sol &s) {
-  s.vet_hubs[0] = vet_ind_no[0];
-  int count = 1;
+#ifdef declara1
+  void declara_hubs(Sol &s) {
+    s.vet_hubs[0] = vet_ind_no[0];
+    int count = 1;
 
   for (int i = 1; i < num_nos && count < num_hubs; i++) {
       bool longe = true;
@@ -238,19 +238,22 @@ void declara_hubs(Sol &s) {
       }
   }
 
-  for (int i = count; i < num_hubs; i++) {
-      s.vet_hubs[i] = vet_ind_no[i];
+    for (int i = count; i < num_hubs; i++) {
+        s.vet_hubs[i] = vet_ind_no[i];
+    }
   }
-}
+#endif
 
 void melhor_hub(Sol &s) {
+  double dist, dist_min;
+  int melhor_h,hub;
   for (int i = 0; i < num_nos; i++) {
-      double dist_min = numeric_limits<double>::max();
-      int melhor_h = -1;
+      dist_min = numeric_limits<double>::max();
+      melhor_h = -1;
 
       for (int j = 0; j < num_hubs; j++) {
-          int hub = s.vet_hubs[j];
-          double dist = mat_custo[i][hub];
+          hub = s.vet_hubs[j];
+          dist = mat_custo[i][hub];
 
           if (dist < dist_min) {  
               dist_min = dist;
@@ -300,11 +303,6 @@ void calc_fo(Sol &s) {
 
         int cam = i * num_nos + k;
         s.cam[cam].custo = custo;
-        s.cam[cam].o = i;
-        s.cam[cam].h1 = h1;
-        s.cam[cam].h2 = h2;
-        s.cam[cam].ds = k;
-
       }
     }
   double custo_max = 0;
@@ -456,6 +454,7 @@ void LRC(Sol &s) {
 
   calc_fo(s);
   arqv_sol(s, "solucaoLRC.txt");
+
 }
 
 void busca_local(Sol &s, Sol &melhor_sol) {

@@ -20,11 +20,13 @@ using namespace std;
 
 #define MAX_NOS 200
 #define MAX_HUBS 50
+
 #define ALPHA 0.75
 #define BETA 1
 #define LAMBDA 1
 #define DELTA 0.35
 #define OMEGA 0.8
+
 #define DISTANCIA(p1, p2)                                                      \
   (sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y)))
 
@@ -56,7 +58,6 @@ int vet_ind_no[MAX_NOS];
 int no_hub[MAX_NOS];
 No vet_nos[MAX_NOS];
 double vet_med_custo[MAX_NOS];
-double mat_custo_total[MAX_NOS][MAX_NOS];
 double mat_custo[MAX_NOS][MAX_NOS];
 
 //parte2
