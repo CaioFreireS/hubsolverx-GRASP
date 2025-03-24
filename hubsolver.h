@@ -80,7 +80,7 @@ void teste_sol_i(const char* instancia);
 void teste_sol_1000(const char* instancia);
 
 //parte 2
-void grasp(Sol &melhor_sol, double tempo_limite, const char *Instancia);
+void grasp(Sol &melhor_sol, double tempo_limite);
 void seleciona_hubs(double limite);
 void LRC(Sol &s);
 void busca_local(Sol &s, Sol &melhor_sol);
@@ -90,7 +90,7 @@ typedef struct resultado{
 }Res;
 
 void teste_grasp();
-void resultado(Res r,const char* instancia, int p, double tempo);
+void resultado(Res &r,const char* instancia, int p, double tempo);
 
 
 #endif // HUBSOLVER_H_INCLUDED
