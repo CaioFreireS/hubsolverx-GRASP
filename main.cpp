@@ -573,7 +573,7 @@ void teste_grasp() {
   Res r100_20;
   resultado(r100_20,"inst100.txt",20,min*3);
   Res r100_40;
-  resultado(r100_10,"inst100.txt",40,min*3);
+  resultado(r100_40,"inst100.txt",40,min*3);
   
   Res r200_3;
   resultado(r200_3,"inst200.txt",3,min*3);
