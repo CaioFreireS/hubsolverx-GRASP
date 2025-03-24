@@ -523,7 +523,7 @@ void resultado(Res &r,const char* instancia, int p, double tempo) {
 }
 
 void teste_grasp() {
-  double min=1;
+  double min=60;
 
   Res r5_3;
   resultado(r5_3,"inst5.txt",3,min);
