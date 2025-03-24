@@ -513,13 +513,10 @@ void resultado(Res &r,const char* instancia, int p, double tempo) {
   media_tempo = soma_tempo/3;
   media_fo = soma_fo/3;
 
-  printf("media fo: %.2f\n",media_fo);
   desvio=((media_fo-melhor_fo)/melhor_fo)*100;
 
   r.melhor_fo = melhor_fo;
   r.media_fo = media_fo;
-  
-  printf("media fo: %.2f\n",r.media_fo);
   r.melhor_tempo = melhor_tempo;
   r.media_tempo = media_tempo;
   r.desvio = desvio;
